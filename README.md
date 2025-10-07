@@ -11,4 +11,4 @@ You are the leader of a small village plunged into an eternal winter. Your goal 
 
 => Hope (Morale): Represents the community's will to live. If hope runs out, people give up.
 
-Each decision you make—like sacrificing medicine for food, or burning a toolshed instead of a library—will drastically impact these resources and the game's atmosphere. If any single resource drops to zero, the game ends, and you see how many days you managed to keep the village alive.
+Each decision you make like sacrificing medicine for food, or burning a toolshed instead of a library will drastically impact these resources and the game's atmosphere. If any single resource drops to zero, the game ends, and you see how many days you managed to keep the village alive.
