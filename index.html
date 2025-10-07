@@ -1,0 +1,556 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Cold Toll</title>
+    <!-- Use Tailwind CDN for baseline utilities and custom CSS for game atmosphere -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap');
+        
+        :root {
+            --bg-color: #1a1a2e; /* Deep dark blue/purple */
+            --card-color: #0f0f1a;
+            --text-color: #e4e4e4;
+            --highlight-color: #e94560; /* Stark red/crimson */
+            --hope-color: #6e6ee6; /* Violet */
+            --food-color: #38a169; /* Green */
+            --wood-color: #d69e2e; /* Gold */
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .screen-container {
+            width: 100%;
+            max-width: 600px;
+            background-color: var(--card-color);
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            padding: 30px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        /* --- Title Screen Specific Styles --- */
+        #cover-screen {
+            text-align: center;
+            padding: 50px 20px;
+            min-height: 400px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        #cover-screen h1 {
+            font-size: 3rem;
+            color: var(--highlight-color);
+            margin-bottom: 5px;
+            letter-spacing: 2px;
+            text-shadow: 0 0 10px rgba(233, 69, 96, 0.7);
+            font-weight: 900;
+        }
+
+        #cover-screen h2 {
+            font-size: 1.2rem;
+            color: var(--hope-color);
+            margin-bottom: 40px;
+            font-weight: 700;
+        }
+
+        #cover-screen p {
+            font-size: 1rem;
+            margin-bottom: 25px;
+            opacity: 0.8;
+        }
+        
+        /* --- General Game UI Styles --- */
+        h1 {
+            font-size: 2.2rem;
+            color: var(--highlight-color);
+            text-align: center;
+            margin-bottom: 20px;
+            letter-spacing: 1px;
+            text-shadow: 0 0 5px rgba(233, 69, 96, 0.5);
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin-bottom: 30px;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+        }
+
+        .stat-item {
+            text-align: center;
+            padding: 10px 5px;
+            border-radius: 6px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .stat-label {
+            font-weight: 700;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            margin-bottom: 4px;
+            opacity: 0.7;
+        }
+
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+
+        #food-val { color: var(--food-color); }
+        #wood-val { color: var(--wood-color); }
+        #hope-val { color: var(--hope-color); }
+        
+        .low-stat {
+            animation: pulse-red 1.5s infinite;
+        }
+
+        @keyframes pulse-red {
+            0% { box-shadow: 0 0 0 0 rgba(233, 69, 96, 0.4); }
+            70% { box-shadow: 0 0 0 10px rgba(233, 69, 96, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(233, 69, 96, 0); }
+        }
+
+        #event-display {
+            background-color: rgba(255, 255, 255, 0.03);
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 25px;
+            min-height: 120px;
+        }
+
+        #event-title {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: var(--highlight-color);
+            margin-bottom: 10px;
+        }
+
+        .choice-button {
+            width: 100%;
+            padding: 15px;
+            margin: 10px 0;
+            background-color: var(--highlight-color);
+            color: var(--card-color);
+            border: none;
+            border-radius: 8px;
+            font-weight: 700;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: background-color 0.2s, transform 0.1s;
+            box-shadow: 0 4px var(--highlight-color), 0 0 10px rgba(233, 69, 96, 0.3);
+        }
+
+        .choice-button:hover {
+            background-color: #ff5e78;
+            transform: translateY(-2px);
+            box-shadow: 0 6px #ff5e78, 0 0 15px rgba(233, 69, 96, 0.5);
+        }
+        
+        .choice-button:active {
+            transform: translateY(0);
+            box-shadow: 0 2px var(--highlight-color);
+        }
+
+        #game-over-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.85);
+            display: none; /* Hidden by default */
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+            backdrop-filter: blur(5px);
+        }
+
+        .modal-content {
+            background-color: var(--card-color);
+            padding: 40px;
+            border-radius: 12px;
+            max-width: 400px;
+            text-align: center;
+            border: 2px solid var(--highlight-color);
+            animation: fadeIn 0.5s;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: scale(0.9); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        .modal-content h2 {
+            font-size: 2.5rem;
+            color: var(--highlight-color);
+            margin-bottom: 15px;
+        }
+
+        .modal-content p {
+            font-size: 1.1rem;
+            margin-bottom: 25px;
+        }
+
+        #reset-button {
+            background-color: var(--hope-color);
+            color: white;
+            padding: 12px 25px;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: background-color 0.2s;
+        }
+
+        #reset-button:hover {
+            background-color: #8c8ce6;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- --- 1. COVER SCREEN (Initial View) --- -->
+    <div class="screen-container" id="cover-screen">
+        <h1>The Cold Toll</h1>
+        <h2>A Game of Sacrifice</h2>
+        
+        <p class="text-xl mb-6">Genre: Survival Management / Narrative Choice</p>
+
+        <div class="mb-8 p-4 border border-gray-700 rounded-lg bg-gray-900 text-left">
+            <p>You are the leader of a village trapped in an eternal winter.</p>
+            <p class="mt-2">Manage **Food**, **Wood (Fuel)**, and **Hope (Morale)**. Every decision comes with a cost. If any resource drops to zero, the toll is paid, and the game ends.</p>
+        </div>
+        
+        <button class="choice-button mt-4" onclick="loadGameUI()">Start The Journey</button>
+    </div>
+
+
+    <!-- --- 2. MAIN GAME UI (Hidden until start) --- -->
+    <div class="screen-container hidden" id="main-game-ui">
+        <h1 id="game-title">The Cold Toll</h1>
+
+        <!-- Day Tracker -->
+        <p class="text-center text-xl mb-4 font-bold">Day <span id="day-val">1</span></p>
+
+        <!-- Resource Stats -->
+        <div class="stats-grid">
+            <div class="stat-item" id="food-stat">
+                <div class="stat-label">Food (per person)</div>
+                <div class="stat-value" id="food-val">100</div>
+            </div>
+            <div class="stat-item" id="wood-stat">
+                <div class="stat-label">Wood (Fuel)</div>
+                <div class="stat-value" id="wood-val">100</div>
+            </div>
+            <div class="stat-item" id="hope-stat">
+                <div class="stat-label">Hope (Morale)</div>
+                <div class="stat-value" id="hope-val">100</div>
+            </div>
+        </div>
+
+        <!-- Event Display -->
+        <div id="event-display">
+            <p id="event-title">The Silence</p>
+            <p id="event-text">The village council waits for your first decree. The eternal winter has begun. You must make choices to survive.</p>
+        </div>
+
+        <!-- Choice Buttons -->
+        <div id="choices-container">
+            <button class="choice-button" id="choice-a-btn" onclick="handleChoice(0)">Begin the First Day</button>
+            <button class="choice-button" id="choice-b-btn" style="display:none;"></button>
+        </div>
+    </div>
+
+    <!-- Game Over Modal -->
+    <div id="game-over-modal">
+        <div class="modal-content">
+            <h2 id="game-over-title">Game Over</h2>
+            <p id="game-over-reason">Reason for ending the game.</p>
+            <p class="font-bold text-lg">You survived for <span id="final-day"></span> days.</p>
+            <button id="reset-button" onclick="startGame()">Start Anew</button>
+        </div>
+    </div>
+
+    <script>
+        // --- Core Game State and Data ---
+        let gameState = {};
+        let currentEvent = null;
+        const INITIAL_STATS = { food: 100, wood: 100, hope: 100, day: 1 };
+        const LOW_THRESHOLD = 30; // Threshold for triggering low-resource warnings
+
+        const events = [
+            {
+                title: "The Sickly Elder",
+                description: "An important elder, vital for maintaining order, has fallen gravely ill. The only medicine left is the last of the medicinal herbs, which could be turned into a Food supplement to feed three people for a day.",
+                choiceA: {
+                    text: "Give the Elder the medicine. They might survive.",
+                    effects: { hope: +10, food: -5, wood: 0 },
+                    consequence: "The elder lives, but the hungry must wait."
+                },
+                choiceB: {
+                    text: "Use the herbs as a supplement. Save the Food.",
+                    effects: { hope: -15, food: +3, wood: 0 },
+                    consequence: "The elder passes, but others eat. Morale drops."
+                }
+            },
+            {
+                title: "Fuel Scarcity",
+                description: "The wood stores are critically low. To last the night, you must burn material from a community structure. Do you sacrifice the public library or the only existing toolshed?",
+                choiceA: {
+                    text: "Burn the Library.",
+                    effects: { wood: +25, hope: -10, food: 0 },
+                    consequence: "Warmth is secured, but knowledge is lost forever."
+                },
+                choiceB: {
+                    text: "Burn the Toolshed.",
+                    effects: { wood: +20, hope: +5, food: -10 },
+                    consequence: "Tools are gone; future foraging (Food) will be much harder."
+                }
+            },
+            {
+                title: "The Deserter",
+                description: "A strong young member of the community was caught trying to sneak out with a large bundle of your Food and Wood reserves. If they are publicly punished, discipline will improve. If you show mercy, the community may see you as weak.",
+                choiceA: {
+                    text: "Make an example. Harsh public punishment.",
+                    effects: { food: +5, wood: +5, hope: +15 },
+                    consequence: "The reserves are saved and order is maintained, but fear permeates."
+                },
+                choiceB: {
+                    text: "Exile them, but spare the reserves.",
+                    effects: { food: +0, wood: +0, hope: -5 },
+                    consequence: "The community questions the fairness of the law."
+                }
+            },
+            {
+                title: "Strange Lights",
+                description: "Strange, unsettling lights appear on the frozen horizon. A scout reports it could be a rival settlement, or simply a dangerous weather phenomenon. You must allocate resources to investigate.",
+                choiceA: {
+                    text: "Send a large scouting party. (Requires resources)",
+                    effects: { food: -15, wood: -15, hope: +5 },
+                    consequence: "If it's danger, you'll be prepared. If not, the loss is heavy."
+                },
+                choiceB: {
+                    text: "Ignore it. Preserve the supplies.",
+                    effects: { food: +0, wood: +0, hope: -10 },
+                    consequence: "Safety is tempting, but the fear of the unknown grows."
+                }
+            },
+            {
+                title: "The Puppy",
+                description: "A litter of abandoned puppies is found near the settlement walls. They are too young to hunt or work and will consume your precious Food.",
+                choiceA: {
+                    text: "Adopt and feed the puppies.",
+                    effects: { food: -10, hope: +20, wood: 0 },
+                    consequence: "A small spark of joy, but a greater drain on supplies."
+                },
+                choiceB: {
+                    text: "Leave them to the cold.",
+                    effects: { food: +0, hope: -20, wood: 0 },
+                    consequence: "A grim necessity that everyone will remember."
+                }
+            }
+        ];
+
+        // --- Utility Functions ---
+
+        /**
+         * Safely clamps a value between a min (0) and max (100).
+         * @param {number} value
+         * @returns {number} The clamped value.
+         */
+        function clampStat(value) {
+            return Math.max(0, Math.min(100, value));
+        }
+
+        /**
+         * Hides the cover screen and shows the main game UI.
+         */
+        function loadGameUI() {
+            document.getElementById('cover-screen').classList.add('hidden');
+            document.getElementById('main-game-ui').classList.remove('hidden');
+            startGame();
+        }
+
+        /**
+         * Initializes the game state and sets up the first event in the main UI.
+         */
+        function startGame() {
+            gameState = { ...INITIAL_STATS };
+            document.getElementById('game-over-modal').style.display = 'none';
+            
+            // Set up the first prompt before the loop starts
+            currentEvent = {
+                title: "The Silence",
+                description: "The village council waits for your first decree. The eternal winter has begun. You must make choices to survive.",
+                choiceA: { text: "Accept the burden.", effects: { food: 0, wood: 0, hope: 0 } },
+                choiceB: { text: "", effects: { food: 0, wood: 0, hope: 0 } }
+            };
+            
+            updateUI();
+            
+            // Immediately transition to the first real event after the initial state is set
+            // The button is dynamically replaced here, hence the need for IDs in updateUI
+            document.getElementById('choice-a-btn').onclick = () => nextDay();
+            document.getElementById('choice-a-btn').textContent = "Accept the Burden (Start Day 1)";
+            
+            const choiceB = document.getElementById('choice-b-btn');
+            if (choiceB) {
+                choiceB.style.display = 'none';
+            }
+        }
+
+        /**
+         * Updates the resource consumption and selects a new event.
+         */
+        function nextDay() {
+            // Apply daily consumption
+            gameState.day++;
+            gameState.food -= Math.floor(5 + Math.random() * 3); // Consume 5-7 food
+            gameState.wood -= Math.floor(5 + Math.random() * 3); // Consume 5-7 wood
+            gameState.hope -= Math.floor(1 + Math.random() * 2); // Consume 1-2 hope
+
+            // Clamp stats after consumption
+            gameState.food = clampStat(gameState.food);
+            gameState.wood = clampStat(gameState.wood);
+            gameState.hope = clampStat(gameState.hope);
+
+            // Check for game over
+            if (checkGameOver()) return;
+            
+            // Select and display new random event
+            const randomEventIndex = Math.floor(Math.random() * events.length);
+            currentEvent = events[randomEventIndex];
+            
+            updateUI();
+        }
+
+        /**
+         * Applies the consequences of the player's choice.
+         * @param {number} choiceIndex - 0 for A, 1 for B.
+         */
+        function handleChoice(choiceIndex) {
+            const choice = choiceIndex === 0 ? currentEvent.choiceA : currentEvent.choiceB;
+            
+            // Apply effects
+            gameState.food += choice.effects.food;
+            gameState.wood += choice.effects.wood;
+            gameState.hope += choice.effects.hope;
+
+            // Clamp stats after effects
+            gameState.food = clampStat(gameState.food);
+            gameState.wood = clampStat(gameState.wood);
+            gameState.hope = clampStat(gameState.hope);
+            
+            // Display consequence message before moving to the next day
+            document.getElementById('event-title').textContent = "Consequence";
+            document.getElementById('event-text').textContent = choice.consequence || "The choice is made. The people look to the next sunrise.";
+
+            // Temporarily disable buttons and show only the continue button
+            document.getElementById('choices-container').innerHTML = `
+                <button class="choice-button" onclick="nextDay()">Continue to Day ${gameState.day + 1}</button>
+            `;
+
+            // Check for game over *after* the choice has been applied
+            checkGameOver();
+        }
+
+        /**
+         * Updates the HTML elements with the current game state.
+         */
+        function updateUI() {
+            // Update stats
+            document.getElementById('day-val').textContent = gameState.day;
+            
+            // Update resources and check for low stats
+            const stats = ['food', 'wood', 'hope'];
+            stats.forEach(stat => {
+                const valueEl = document.getElementById(`${stat}-val`);
+                const statEl = document.getElementById(`${stat}-stat`);
+                valueEl.textContent = gameState[stat];
+
+                // Add pulse animation for low resources
+                if (gameState[stat] <= LOW_THRESHOLD) {
+                    statEl.classList.add('low-stat');
+                } else {
+                    statEl.classList.remove('low-stat');
+                }
+            });
+
+            // Update event
+            document.getElementById('event-title').textContent = currentEvent.title;
+            document.getElementById('event-text').textContent = currentEvent.description;
+
+            // Update choices
+            const container = document.getElementById('choices-container');
+            if (currentEvent.choiceB.text) {
+                // Display both choices
+                container.innerHTML = `
+                    <button class="choice-button" id="choice-a-btn" onclick="handleChoice(0)">${currentEvent.choiceA.text}</button>
+                    <button class="choice-button" id="choice-b-btn" onclick="handleChoice(1)">${currentEvent.choiceB.text}</button>
+                `;
+            } else {
+                 // Display only choice A (for starting the game or continue)
+                container.innerHTML = `
+                    <button class="choice-button" id="choice-a-btn" onclick="handleChoice(0)">${currentEvent.choiceA.text}</button>
+                `;
+            }
+        }
+
+        /**
+         * Checks for game-ending conditions and calls gameOver if necessary.
+         * @returns {boolean} True if the game is over.
+         */
+        function checkGameOver() {
+            let reason = null;
+
+            if (gameState.food <= 0) {
+                reason = "The final stores have been depleted. The Village starves.";
+            } else if (gameState.wood <= 0) {
+                reason = "The fires have gone out. The cold has taken everyone.";
+            } else if (gameState.hope <= 0) {
+                reason = "The light in their eyes has died. The Village gives up and succumbs to despair.";
+            }
+            
+            if (reason) {
+                gameOver(reason);
+                return true;
+            }
+            return false;
+        }
+
+        /**
+         * Displays the game over screen.
+         * @param {string} reason - The reason the game ended.
+         */
+        function gameOver(reason) {
+            document.getElementById('game-over-title').textContent = "The Toll is Paid";
+            document.getElementById('game-over-reason').textContent = reason;
+            document.getElementById('final-day').textContent = gameState.day;
+            document.getElementById('game-over-modal').style.display = 'flex';
+        }
+
+        // Initialize the game on page load by showing the cover screen
+        window.onload = function() {
+            // The cover screen is shown by default in the HTML structure
+            // We just need to ensure the main game UI is hidden
+            document.getElementById('main-game-ui').classList.add('hidden');
+        };
+
+    </script>
+</body>
+</html>
